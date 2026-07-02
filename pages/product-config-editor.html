@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Product Config Editor</title>
+<style>
+  :root{
+    --bg:#0d0f14;
+    --panel:#151822;
+    --panel-alt:#1b1f2b;
+    --border:#262b3a;
+    --text:#e6e9f0;
+    --text-dim:#8891a3;
+    --accent:#f0a339;
+    --accent-dim:#7a5424;
+    --accent-2:#35d0ba;
+    --danger:#ef5350;
+    --danger-dim:#5a2524;
+    --mono: ui-monospace, "SF Mono", "Cascadia Code", Consolas, monospace;
+    --sans: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:var(--sans);}
+  body{min-height:100vh;}
+  #app{max-width:1100px;margin:0 auto;padding:28px 20px 80px;}
+
+  header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:22px;border-bottom:1px dashed var(--border);padding-bottom:18px;}
+  .brand{display:flex;flex-direction:column;gap:4px;}
+  .brand .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--accent);text-transform:uppercase;}
+  .brand h1{margin:0;font-size:22px;font-weight:650;letter-spacing:-0.01em;}
+  .brand .file-name{font-family:var(--mono);font-size:12px;color:var(--text-dim);}
+
+  .actions{display:flex;gap:8px;flex-wrap:wrap;}
+  button{cursor:pointer;border-radius:6px;border:1px solid var(--border);background:var(--panel);color:var(--text);font-family:var(--sans);font-size:13px;padding:8px 12px;transition:border-color .15s, background .15s;}
+  button:hover{border-color:var(--accent);}
+  button.primary{background:var(--accent);color:#1a1300;border-color:var(--accent);font-weight:600;}
+  button.primary:hover{background:#ffb955;}
+  button.ghost{background:transparent;}
+  button.danger{color:#ffb4b1;border-color:var(--danger-dim);}
+  button.danger:hover{border-color:var(--danger);background:rgba(239,83,80,.08);}
+  button.small{padding:4px 8px;font-size:12px;}
+  button:disabled{opacity:.4;cursor:not-allowed;}
+  input[type=file]{display:none;}
+
+  nav.tabs{display:flex;gap:4px;margin-bottom:20px;border-bottom:1px solid var(--border);}
+  nav.tabs button{border:none;border-radius:0;background:transparent;padding:10px 16px;font-size:13px;color:var(--text-dim);position:relative;top:1px;}
+  nav.tabs button.active{color:var(--accent);border-bottom:2px solid var(--accent);font-weight:600;}
+  nav.tabs button .count{font-family:var(--mono);font-size:11px;color:var(--text-dim);margin-left:6px;}
+
+  .panel{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px;}
+  .panel + .panel{margin-top:16px;}
+  .field-row{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+  .field-row label{width:140px;font-size:13px;color:var(--text-dim);flex-shrink:0;}
+  .field-row input[type=text],.field-row input[type=number]{
+    flex:1;background:var(--panel-alt);border:1px solid var(--border);color:var(--text);
+    border-radius:6px;padding:8px 10px;font-family:var(--mono);font-size:13px;
+  }
+  .field-row input:focus,{outline:none;border-color:var(--accent);}
+  .hint{font-size:12px;color:var(--text-dim);line-height:1.5;margin-top:2px;}
+
+  .empty{border:1px dashed var(--border);border-radius:10px;padding:30px;text-align:center;color:var(--text-dim);font-size:13px;}
+  .empty b{color:var(--text);}
+
+  /* ID chip list (Recommended / Popular) */
+  .id-list{display:flex;flex-direction:column;gap:8px;}
+  .id-row{display:flex;align-items:center;gap:10px;background:var(--panel-alt);border:1px solid var(--border);border-radius:8px;padding:8px 10px;}
+  .id-row .slot{font-family:var(--mono);font-size:11px;color:var(--accent);width:28px;text-align:center;background:var(--accent-dim);border-radius:4px;padding:3px 0;flex-shrink:0;}
+  .id-row input{flex:1;background:transparent;border:none;color:var(--text);font-family:var(--mono);font-size:14px;padding:4px 2px;}
+  .id-row input:focus{outline:none;}
+  .id-row button{flex-shrink:0;}
+  .add-row{margin-top:10px;}
+
+  /* Products */
+  .toolbar{display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap;}
+  .toolbar input[type=text]{background:var(--panel-alt);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:8px 10px;font-family:var(--mono);font-size:13px;flex:1;min-width:180px;}
+  .product-card{border:1px solid var(--border);border-radius:10px;margin-bottom:12px;overflow:hidden;background:var(--panel-alt);}
+  .product-head{display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;user-select:none;}
+  .product-head .chev{color:var(--text-dim);font-size:11px;width:12px;}
+  .product-head .pid{font-family:var(--mono);font-size:15px;font-weight:600;color:var(--accent);}
+  .product-head .meta{margin-left:auto;display:flex;align-items:center;gap:10px;font-size:11px;color:var(--text-dim);font-family:var(--mono);}
+  .badge{border:1px solid var(--border);border-radius:20px;padding:2px 9px;font-size:11px;}
+  .badge.on{border-color:var(--accent-2);color:var(--accent-2);}
+  .product-body{border-top:1px dashed var(--border);padding:14px;display:none;}
+  .product-body.open{display:block;}
+  .row-inline{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+  .row-inline label{font-size:12px;color:var(--text-dim);}
+  .rename-box{display:flex;align-items:center;gap:6px;}
+  .rename-box input{font-family:var(--mono);background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:6px 8px;color:var(--text);font-size:13px;width:140px;}
+  .checkbox-wrap{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text-dim);}
+
+  .subproducts{display:flex;flex-direction:column;gap:10px;}
+  .subcard{position:relative;background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:12px 14px;}
+  .subcard::before{content:"";position:absolute;left:-1px;top:14px;bottom:14px;width:3px;background:var(--accent);border-radius:2px;opacity:.7;}
+  .subcard-head{display:flex;align-items:center;margin-bottom:10px;}
+  .subcard-head .idx{font-family:var(--mono);font-size:11px;color:var(--text-dim);background:var(--panel-alt);border-radius:4px;padding:2px 7px;}
+  .subcard-head .price-tag{margin-left:auto;font-family:var(--mono);font-weight:700;color:var(--accent);font-size:14px;}
+  .subgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;}
+  .subgrid .f label{display:block;font-size:11px;color:var(--text-dim);margin-bottom:4px;}
+  .subgrid .f input{width:100%;background:var(--panel-alt);border:1px solid var(--border);border-radius:6px;padding:7px 8px;color:var(--text);font-family:var(--mono);font-size:13px;}
+  .subgrid .f input:focus{outline:none;border-color:var(--accent);}
+  .subcard-foot{display:flex;justify-content:flex-end;margin-top:10px;}
+
+  .footer-note{margin-top:26px;font-size:12px;color:var(--text-dim);line-height:1.6;border-top:1px dashed var(--border);padding-top:14px;}
+  code{font-family:var(--mono);background:var(--panel-alt);border-radius:4px;padding:1px 5px;}
+
+  ::-webkit-scrollbar{width:10px;height:10px;}
+  ::-webkit-scrollbar-thumb{background:var(--border);border-radius:6px;}
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="top">
+    <div class="brand">
+      <div class="eyebrow">Local &middot; No server &middot; Nothing leaves your browser</div>
+      <h1>Product Config Editor (WEB AI GENERATED, JANGAN TELAN MENTAH MENTAH)</h1>
+      <div class="file-name" id="fileNameLabel">No file loaded &mdash; using a blank config</div>
+    </div>
+    <div class="actions">
+      <button class="ghost" id="btnNew">New</button>
+      <button id="btnLoad">Load JSON</button>
+      <button class="primary" id="btnSave">Download JSON</button>
+      <input type="file" id="fileInput" accept="application/json,.json">
+    </div>
+  </header>
+
+  <nav class="tabs" id="tabs">
+    <button data-tab="version">Version</button>
+    <button data-tab="recommended">Recommended (Still Broken) <span class="count" id="cntRecommended"></span></button>
+    <button data-tab="popular">Popular <span class="count" id="cntPopular"></span></button>
+    <button data-tab="products">Products <span class="count" id="cntProducts"></span></button>
+  </nav>
+
+  <main id="content"></main>
+
+  <div class="footer-note">
+    Shape assumptions: <code>Recommended</code> and <code>Popular</code> are saved as objects keyed <code>"0","1","2"...</code>, each value being an item ID. Each product's variants are saved under a <code>SubProducts</code> object, also keyed <code>"0","1",...</code>, with fields <code>Count</code>, <code>Duration</code>, <code>Price</code>, <code>AdditionalPoints</code>, <code>AdditionalClanPoints</code>, <code>AdType</code>. If your file already uses a slightly different shape it will still be read in &mdash; loading auto-detects arrays vs. keyed objects.
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- state ----------
+  var state = {
+    Version: 1,
+    Recommended: [],   // array of id strings, order = slot index
+    Popular: [],        // array of id strings, order = slot index
+    Products: {}        // { id: { IsPoints: bool, SubProducts: [ {Count,duration,price,AdditionalPoints,AdditionalClanPoints,AdType}, ... ] } }
+  };
+  var openProducts = {}; // id -> bool, expanded state
+  var currentTab = "version";
+  var currentFileName = null;
+  var productFilter = "";
+
+  var SUB_FIELDS = ["Count","Duration","Price","AdditionalPoints","AdditionalClanPoints","AdType"];
+  var SUB_DEFAULTS = {Count:1,Duration:0,Price:0,AdditionalPoints:0,AdditionalClanPoints:0,AdType:0};
+
+  // ---------- helpers ----------
+  function $(sel,root){ return (root||document).querySelector(sel); }
+  function $all(sel,root){ return Array.prototype.slice.call((root||document).querySelectorAll(sel)); }
+  function el(tag, attrs, children){
+    var node = document.createElement(tag);
+    if(attrs) Object.keys(attrs).forEach(function(k){
+      if(k === "class") node.className = attrs[k];
+      else if(k === "text") node.textContent = attrs[k];
+      else if(k.indexOf("on") === 0 && typeof attrs[k] === "function") node.addEventListener(k.slice(2), attrs[k]);
+      else node.setAttribute(k, attrs[k]);
+    });
+    (children||[]).forEach(function(c){ if(c) node.appendChild(c); });
+    return node;
+  }
+  function looksNumeric(v){ return typeof v === "string" && /^-?\d+(\.\d+)?$/.test(v.trim()); }
+  function toNumberIfLooksNumeric(v){ return looksNumeric(v) ? Number(v) : v; }
+  function safeNum(v, fallback){
+    var n = Number(v);
+    return isFinite(n) ? n : (fallback===undefined?0:fallback);
+  }
+
+  // Normalize Recommended / Popular from any raw shape into an ordered array of id strings
+  function normalizeIdList(raw){
+    if(raw == null) return [];
+    if(Array.isArray(raw)){
+      return raw.map(function(v){
+        if(v && typeof v === "object") return String(v.ItemId || v.ItemID || v.id || v.Id || "");
+        return String(v);
+      });
+    }
+    if(typeof raw === "object"){
+      var keys = Object.keys(raw).sort(function(a,b){ return (Number(a)||0) - (Number(b)||0); });
+      return keys.map(function(k){
+        var v = raw[k];
+        if(v && typeof v === "object") return String(v.ItemId || v.ItemID || v.id || v.Id || "");
+        return String(v);
+      });
+    }
+    return [];
+  }
+  function exportIdList(arr){
+    var out = {};
+    arr.forEach(function(id, i){ out[String(i)] = toNumberIfLooksNumeric(id); });
+    return out;
+  }
+
+  function normalizeSubProducts(raw){
+    if(raw == null) return [];
+    var entries;
+    if(Array.isArray(raw)){
+      entries = raw.map(function(v,i){ return [String(i), v]; });
+    } else if (typeof raw === "object"){
+      entries = Object.keys(raw).map(function(k){ return [k, raw[k]]; });
+      entries.sort(function(a,b){ return (Number(a[0])||0) - (Number(b[0])||0); });
+    } else {
+      entries = [];
+    }
+    return entries.map(function(pair){
+      var v = pair[1] || {};
+      var out = {};
+      SUB_FIELDS.forEach(function(f){
+        out[f] = (v[f] !== undefined) ? v[f] : SUB_DEFAULTS[f];
+      });
+      return out;
+    });
+  }
+  function exportSubProducts(arr){
+    var out = {};
+    arr.forEach(function(sp, i){
+      out[String(i)] = {
+        Count: safeNum(sp.Count, 1),
+        Duration: safeNum(sp.duration, 0),
+        Price: safeNum(sp.price, 0),
+        AdditionalPoints: safeNum(sp.AdditionalPoints, 0),
+        AdditionalClanPoints: safeNum(sp.AdditionalClanPoints, 0),
+        AdType: safeNum(sp.AdType, 0)
+      };
+    });
+    return out;
+  }
+
+  function normalizeProducts(raw){
+    var out = {};
+    if(raw && typeof raw === "object"){
+      Object.keys(raw).forEach(function(id){
+        var v = raw[id] || {};
+        var subRaw = v.SubProducts || v.Subproducts || v.subProducts || v.Variants || v.variants;
+        out[id] = {
+          IsPoints: !!v.IsPoints,
+          SubProducts: normalizeSubProducts(subRaw)
+        };
+      });
+    }
+    return out;
+  }
+  function exportProducts(products){
+    var out = {};
+    Object.keys(products).forEach(function(id){
+      var p = products[id];
+      out[id] = {
+        IsPoints: !!p.IsPoints,
+        SubProducts: exportSubProducts(p.SubProducts || [])
+      };
+    });
+    return out;
+  }
+
+  function loadFromRaw(raw){
+    state = {
+      Version: (raw && raw.Version !== undefined) ? raw.Version : 1,
+      Recommended: normalizeIdList(raw && raw.Recommended),
+      Popular: normalizeIdList(raw && raw.Popular),
+      Products: normalizeProducts(raw && raw.Products)
+    };
+    openProducts = {};
+    productFilter = "";
+    render();
+  }
+
+  function serialize(){
+    return {
+      Version: state.Version,
+      Recommended: exportIdList(state.Recommended),
+      Popular: exportIdList(state.Popular),
+      Products: exportProducts(state.Products)
+    };
+  }
+
+  // ---------- rendering ----------
+  function render(){
+    $all("nav.tabs button").forEach(function(b){
+      b.classList.toggle("active", b.dataset.tab === currentTab);
+    });
+    $("#cntRecommended").textContent = state.Recommended.length ? "("+state.Recommended.length+")" : "";
+    $("#cntPopular").textContent = state.Popular.length ? "("+state.Popular.length+")" : "";
+    var pCount = Object.keys(state.Products).length;
+    $("#cntProducts").textContent = pCount ? "("+pCount+")" : "";
+    $("#fileNameLabel").textContent = currentFileName ? ("Editing: " + currentFileName) : "No file loaded — using a blank config";
+
+    var content = $("#content");
+    content.innerHTML = "";
+    if(currentTab === "version") content.appendChild(renderVersion());
+    else if(currentTab === "recommended") content.appendChild(renderIdListPanel("Recommended", state.Recommended, "Featured / recommended slots. Each row is a slot (in order) holding one item ID."));
+    else if(currentTab === "popular") content.appendChild(renderIdListPanel("Popular", state.Popular, "Set of item IDs to flag as popular."));
+    else if(currentTab === "products") content.appendChild(renderProducts());
+  }
+
+  function renderVersion(){
+    var panel = el("div", {class:"panel"});
+    var row = el("div", {class:"field-row"});
+    row.appendChild(el("label", {text:"Version"}));
+    var input = el("input", {type:"text", value: String(state.Version)});
+    input.addEventListener("input", function(){ state.Version = toNumberIfLooksNumeric(input.value); });
+    row.appendChild(input);
+    panel.appendChild(row);
+    panel.appendChild(el("div", {class:"hint", text:"Stored as a number if the value looks numeric, otherwise saved as text."}));
+    return panel;
+  }
+
+  function renderIdListPanel(label, list, hintText){
+    var panel = el("div", {class:"panel"});
+    panel.appendChild(el("div", {class:"hint", text:hintText, style:"margin-bottom:14px;"}));
+    if(list.length === 0){
+      panel.appendChild(el("div", {class:"empty"}, [
+        el("div", {}, [document.createTextNode("No entries yet in "), el("b",{text:label})])
+      ]));
+    } else {
+      var listWrap = el("div", {class:"id-list"});
+      list.forEach(function(id, i){
+        var row = el("div", {class:"id-row"});
+        row.appendChild(el("div", {class:"slot", text:String(i)}));
+        var input = el("input", {type:"text", value:id, placeholder:"item id"});
+        input.addEventListener("input", function(){ list[i] = input.value; });
+        row.appendChild(input);
+        row.appendChild(el("button", {class:"small danger", text:"Remove", onclick:function(){
+          list.splice(i,1); render();
+        }}));
+        listWrap.appendChild(row);
+      });
+      panel.appendChild(listWrap);
+    }
+    var addRow = el("div", {class:"add-row"});
+    addRow.appendChild(el("button", {class:"primary small", text:"+ Add slot", onclick:function(){
+      list.push("");
+      render();
+      var inputs = $all("#content .id-row input");
+      if(inputs.length) inputs[inputs.length-1].focus();
+    }}));
+    panel.appendChild(addRow);
+    return panel;
+  }
+
+  function renderProducts(){
+    var wrap = el("div", {});
+    var toolbar = el("div", {class:"toolbar"});
+    var search = el("input", {type:"text", placeholder:"Filter by item ID…", value: productFilter});
+    search.addEventListener("input", function(){ productFilter = search.value; renderProductList(listHolder); });
+    toolbar.appendChild(search);
+    toolbar.appendChild(el("button", {class:"primary", text:"+ Add product", onclick:function(){
+      var id = prompt("New item ID:");
+      if(id === null) return;
+      id = id.trim();
+      if(!id){ alert("Item ID can't be empty."); return; }
+      if(state.Products[id]){ alert("That item ID already exists."); return; }
+      state.Products[id] = { IsPoints:false, SubProducts:[] };
+      openProducts[id] = true;
+      productFilter = "";
+      render();
+    }}));
+    wrap.appendChild(toolbar);
+
+    var listHolder = el("div", {});
+    wrap.appendChild(listHolder);
+    renderProductList(listHolder);
+    return wrap;
+  }
+
+  function renderProductList(listHolder){
+    listHolder.innerHTML = "";
+    var ids = Object.keys(state.Products).filter(function(id){
+      return !productFilter || id.toLowerCase().indexOf(productFilter.toLowerCase()) !== -1;
+    });
+    if(ids.length === 0){
+      listHolder.appendChild(el("div", {class:"empty"}, [
+        el("div", {}, [document.createTextNode(Object.keys(state.Products).length ? "No products match that filter." : "No products yet.")])
+      ]));
+      return;
+    }
+    ids.forEach(function(id){
+      listHolder.appendChild(renderProductCard(id));
+    });
+  }
+
+  function renderProductCard(id){
+    var product = state.Products[id];
+    var isOpen = !!openProducts[id];
+    var card = el("div", {class:"product-card"});
+
+    var head = el("div", {class:"product-head", onclick:function(e){
+      if(e.target.closest("[data-stop]")) return;
+      openProducts[id] = !openProducts[id];
+      body.classList.toggle("open", openProducts[id]);
+      chev.textContent = openProducts[id] ? "▼" : "▶";
+    }});
+    var chev = el("span", {class:"chev", text:isOpen ? "▼" : "▶"});
+    head.appendChild(chev);
+    head.appendChild(el("span", {class:"pid", text:id}));
+    var meta = el("span", {class:"meta"});
+    meta.appendChild(el("span", {class:"badge" + (product.IsPoints?" on":""), text: product.IsPoints ? "IsPoints: true" : "IsPoints: false"}));
+    meta.appendChild(el("span", {class:"badge", text: product.SubProducts.length + " variant" + (product.SubProducts.length===1?"":"s")}));
+    var delBtn = el("button", {class:"small danger", "data-stop":"1", text:"Delete", onclick:function(){
+      if(confirm("Delete product \"" + id + "\" and all its variants?")){
+        delete state.Products[id];
+        delete openProducts[id];
+        render();
+      }
+    }});
+    meta.appendChild(delBtn);
+    head.appendChild(meta);
+    card.appendChild(head);
+
+    var body = el("div", {class:"product-body" + (isOpen ? " open" : "")});
+
+    // rename + IsPoints row
+    var rowInline = el("div", {class:"row-inline"});
+    var renameBox = el("div", {class:"rename-box"});
+    renameBox.appendChild(el("label", {text:"Item ID:"}));
+    var renameInput = el("input", {type:"text", value:id});
+    renameBox.appendChild(renameInput);
+    renameBox.appendChild(el("button", {class:"small", text:"Rename", onclick:function(){
+      var newId = renameInput.value.trim();
+      if(!newId || newId === id) return;
+      if(state.Products[newId]){ alert("That item ID already exists."); return; }
+      var ordered = {};
+      Object.keys(state.Products).forEach(function(k){
+        if(k === id) ordered[newId] = product;
+        else ordered[k] = state.Products[k];
+      });
+      state.Products = ordered;
+      openProducts[newId] = openProducts[id];
+      delete openProducts[id];
+      render();
+    }}));
+    rowInline.appendChild(renameBox);
+
+    var cbWrap = el("label", {class:"checkbox-wrap"});
+    var cb = el("input", {type:"checkbox"});
+    cb.checked = !!product.IsPoints;
+    cb.addEventListener("change", function(){ product.IsPoints = cb.checked; });
+    cbWrap.appendChild(cb);
+    cbWrap.appendChild(document.createTextNode("IsPoints"));
+    rowInline.appendChild(cbWrap);
+    body.appendChild(rowInline);
+
+    // subproducts
+    var subWrap = el("div", {class:"subproducts"});
+    if(product.SubProducts.length === 0){
+      subWrap.appendChild(el("div", {class:"empty", text:"No variants yet."}));
+    } else {
+      product.SubProducts.forEach(function(sp, idx){
+        subWrap.appendChild(renderSubcard(product, sp, idx));
+      });
+    }
+    body.appendChild(subWrap);
+
+    var addSub = el("div", {class:"add-row"});
+    addSub.appendChild(el("button", {class:"primary small", text:"+ Add variant", onclick:function(){
+      product.SubProducts.push({Count:1,Duration:0,Price:0,AdditionalPoints:0,AdditionalClanPoints:0,AdType:0});
+      render();
+    }}));
+    body.appendChild(addSub);
+
+    card.appendChild(body);
+    return card;
+  }
+
+  function renderSubcard(product, sp, idx){
+    var card = el("div", {class:"subcard"});
+    var head = el("div", {class:"subcard-head"});
+    head.appendChild(el("span", {class:"idx", text:"variant " + idx}));
+    var priceTag = el("span", {class:"price-tag", text: (sp.price !== undefined ? sp.price : 0)});
+    head.appendChild(priceTag);
+    card.appendChild(head);
+
+    var grid = el("div", {class:"subgrid"});
+    var labels = {
+      Count: "Count",
+      Duration: "Duration",
+      Price: "Price",
+      AdditionalPoints: "Additional points",
+      AdditionalClanPoints: "Additional clan points",
+      AdType: "AdType"
+    };
+    SUB_FIELDS.forEach(function(field){
+      var f = el("div", {class:"f"});
+      f.appendChild(el("label", {text: labels[field]}));
+      var input = el("input", {type:"number", step: (field === "price" ? "any" : "1"), value: sp[field]});
+      input.addEventListener("input", function(){
+        sp[field] = input.value === "" ? "" : Number(input.value);
+        if(field === "price") priceTag.textContent = (input.value === "" ? 0 : Number(input.value));
+      });
+      f.appendChild(input);
+      grid.appendChild(f);
+    });
+    card.appendChild(grid);
+
+    var foot = el("div", {class:"subcard-foot"});
+    foot.appendChild(el("button", {class:"small danger", text:"Remove variant", onclick:function(){
+      product.SubProducts.splice(idx,1);
+      render();
+    }}));
+    card.appendChild(foot);
+    return card;
+  }
+
+  // ---------- top-level actions ----------
+  $("#btnNew").addEventListener("click", function(){
+    if(!confirm("Start a new blank config? Unsaved changes will be lost.")) return;
+    currentFileName = null;
+    loadFromRaw({Version:1, Recommended:{}, Popular:{}, Products:{}});
+  });
+  $("#btnLoad").addEventListener("click", function(){ $("#fileInput").click(); });
+  $("#fileInput").addEventListener("change", function(e){
+    var file = e.target.files[0];
+    if(!file) return;
+    var reader = new FileReader();
+    reader.onload = function(){
+      try{
+        var raw = JSON.parse(reader.result);
+        currentFileName = file.name;
+        loadFromRaw(raw);
+      }catch(err){
+        alert("Couldn't parse that file as JSON:\n" + err.message);
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  });
+  $("#btnSave").addEventListener("click", function(){
+    var json = JSON.stringify(serialize(), null, 2);
+    var blob = new Blob([json], {type:"application/json"});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = currentFileName || "product-config.json";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+  $all("nav.tabs button").forEach(function(b){
+    b.addEventListener("click", function(){ currentTab = b.dataset.tab; render(); });
+  });
+
+  // ---------- init ----------
+  loadFromRaw({Version:1, Recommended:{}, Popular:{}, Products:{}});
+})();
+</script>
+</body>
+</html>

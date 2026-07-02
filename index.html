@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSN Private - Menu</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&display=swap');
+
+  :root {
+    --bg-dark: #0a0b10;
+    --bg-card: #12141d;
+    --bg-card-hover: #1a1d2e;
+    --border: #1e2235;
+    --border-glow: #2d6cdf;
+    --accent: #4f8eff;
+    --accent-dim: #1e3a6e;
+    --accent-gold: #f0a339;
+    --text: #e8ecf4;
+    --text-dim: #6b7394;
+    --text-muted: #3d4463;
+    --danger: #ff4757;
+    --success: #2ed573;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg-dark);
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Animated background */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+      radial-gradient(ellipse at 20% 50%, rgba(79, 142, 255, 0.03) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, rgba(240, 163, 57, 0.02) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 80%, rgba(79, 142, 255, 0.02) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Grid pattern overlay */
+  body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+      linear-gradient(rgba(79, 142, 255, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(79, 142, 255, 0.03) 1px, transparent 1px);
+    background-size: 50px 50px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 24px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Header */
+  header {
+    text-align: center;
+    margin-bottom: 60px;
+    padding: 40px 0;
+  }
+
+  .logo-section {
+    margin-bottom: 20px;
+  }
+
+  .logo-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 20px;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-gold) 100%);
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: pulse-glow 3s ease-in-out infinite;
+  }
+
+  .logo-icon::before {
+    content: '⬡';
+    font-size: 40px;
+    color: var(--bg-dark);
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 0 20px rgba(79, 142, 255, 0.3); }
+    50% { box-shadow: 0 0 40px rgba(79, 142, 255, 0.6); }
+  }
+
+  h1 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 42px;
+    font-weight: 800;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    background: linear-gradient(135deg, var(--text) 0%, var(--accent) 50%, var(--accent-gold) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 10px;
+  }
+
+  .subtitle {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+
+  .divider {
+    width: 200px;
+    height: 2px;
+    margin: 30px auto;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    position: relative;
+  }
+
+  .divider::before {
+    content: '◆';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--accent);
+    font-size: 12px;
+    background: var(--bg-dark);
+    padding: 0 10px;
+  }
+
+  /* Cards Grid */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 30px;
+    flex: 1;
+    align-content: start;
+  }
+
+  /* Card */
+  .card {
+    position: relative;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-gold));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(79, 142, 255, 0.06) 0%, transparent 60%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .card:hover {
+    transform: translateY(-8px);
+    border-color: var(--border-glow);
+    background: var(--bg-card-hover);
+    box-shadow: 
+      0 20px 40px rgba(0, 0, 0, 0.4),
+      0 0 60px rgba(79, 142, 255, 0.1);
+  }
+
+  .card:hover::before {
+    opacity: 1;
+  }
+
+  .card:hover::after {
+    opacity: 1;
+  }
+
+  .card-glow {
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: conic-gradient(from 0deg, transparent, var(--accent), transparent, transparent);
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    animation: rotate 4s linear infinite;
+    pointer-events: none;
+  }
+
+  .card:hover .card-glow {
+    opacity: 0.1;
+  }
+
+  @keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  .card-content {
+    position: relative;
+    z-index: 1;
+    padding: 32px;
+  }
+
+  .card-icon {
+    width: 64px;
+    height: 64px;
+    margin-bottom: 24px;
+    background: linear-gradient(135deg, var(--accent-dim) 0%, var(--bg-card) 100%);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    transition: all 0.3s ease;
+  }
+
+  .card:hover .card-icon {
+    border-color: var(--accent);
+    box-shadow: 0 0 20px rgba(79, 142, 255, 0.2);
+    transform: scale(1.05);
+  }
+
+  .card-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+    color: var(--text);
+    transition: color 0.3s ease;
+  }
+
+  .card:hover .card-title {
+    color: var(--accent);
+  }
+
+  .card-description {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--text-dim);
+    margin-bottom: 24px;
+  }
+
+  .card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+
+  .tag {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    background: rgba(79, 142, 255, 0.08);
+    border: 1px solid rgba(79, 142, 255, 0.2);
+    border-radius: 4px;
+    color: var(--accent);
+  }
+
+  .card-action {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    transition: all 0.3s ease;
+  }
+
+  .card:hover .card-action {
+    color: var(--accent);
+  }
+
+  .card-action .arrow {
+    transition: transform 0.3s ease;
+  }
+
+  .card:hover .card-action .arrow {
+    transform: translateX(6px);
+  }
+
+  /* Corner decorations */
+  .corner {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border);
+    z-index: 2;
+    transition: border-color 0.3s ease;
+  }
+
+  .card:hover .corner {
+    border-color: var(--accent);
+  }
+
+  .corner-tl { top: 10px; left: 10px; border-right: none; border-bottom: none; }
+  .corner-tr { top: 10px; right: 10px; border-left: none; border-bottom: none; }
+  .corner-bl { bottom: 10px; left: 10px; border-right: none; border-top: none; }
+  .corner-br { bottom: 10px; right: 10px; border-left: none; border-top: none; }
+
+  /* Footer */
+  footer {
+    margin-top: 60px;
+    padding: 30px 0;
+    text-align: center;
+    border-top: 1px solid var(--border);
+  }
+
+  .footer-text {
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .footer-text span {
+    color: var(--accent);
+  }
+
+  /* Status indicator */
+  .status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 20px;
+    padding: 8px 16px;
+    background: rgba(46, 213, 115, 0.08);
+    border: 1px solid rgba(46, 213, 115, 0.2);
+    border-radius: 20px;
+    font-size: 12px;
+    color: var(--success);
+  }
+
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    background: var(--success);
+    border-radius: 50%;
+    animation: blink 2s ease-in-out infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    h1 { font-size: 28px; letter-spacing: 2px; }
+    .subtitle { font-size: 12px; letter-spacing: 4px; }
+    .cards-grid { grid-template-columns: 1fr; gap: 20px; }
+    .card-content { padding: 24px; }
+    header { margin-bottom: 40px; padding: 20px 0; }
+  }
+
+  /* Scan line effect */
+  .scanline {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity: 0.3;
+    animation: scan 8s linear infinite;
+    pointer-events: none;
+    z-index: 100;
+  }
+
+  @keyframes scan {
+    0% { top: -10%; }
+    100% { top: 110%; }
+  }
+</style>
+</head>
+<body>
+<div class="scanline"></div>
+
+<div class="container">
+  <header>
+    <div class="logo-section">
+      <div class="logo-icon"></div>
+      <h1>CSN Private</h1>
+      <p class="subtitle">Control Panel</p>
+    </div>
+    <div class="divider"></div>
+    <div class="status">
+      <span class="status-dot"></span>
+      <span>System Online</span>
+    </div>
+  </header>
+
+  <main class="cards-grid">
+    <!-- Item Database Card -->
+    <a href="pages/item_database.html" class="card" data-card>
+      <div class="card-glow"></div>
+      <span class="corner corner-tl"></span>
+      <span class="corner corner-tr"></span>
+      <span class="corner corner-bl"></span>
+      <span class="corner corner-br"></span>
+      <div class="card-content">
+        <div class="card-icon">🗄️</div>
+        <h2 class="card-title">Item Database</h2>
+        <p class="card-description">
+          Browse and search through the complete item database. Filter by class, category, and search by name or ID. View detailed item information including levels, grades, and resource names.
+        </p>
+        <div class="card-tags">
+          <span class="tag">Database</span>
+          <span class="tag">Search</span>
+          <span class="tag">Equipment</span>
+          <span class="tag">Items</span>
+        </div>
+        <div class="card-action">
+          <span>Open Module</span>
+          <span class="arrow">→</span>
+        </div>
+      </div>
+    </a>
+
+    <!-- Product Config Editor Card -->
+    <a href="pages/product-config-editor.html" class="card" data-card>
+      <div class="card-glow"></div>
+      <span class="corner corner-tl"></span>
+      <span class="corner corner-tr"></span>
+      <span class="corner corner-bl"></span>
+      <span class="corner corner-br"></span>
+      <div class="card-content">
+        <div class="card-icon">⚙️</div>
+        <h2 class="card-title">Product Config</h2>
+        <p class="card-description">
+          Edit product configurations with a visual interface. Manage recommended items, popular items, and product variants with pricing. Export configurations as JSON files.
+        </p>
+        <div class="card-tags">
+          <span class="tag">Editor</span>
+          <span class="tag">Config</span>
+          <span class="tag">Products</span>
+          <span class="tag">JSON</span>
+        </div>
+        <div class="card-action">
+          <span>Open Module</span>
+          <span class="arrow">→</span>
+        </div>
+      </div>
+    </a>
+  </main>
+
+  <footer>
+    <p class="footer-text">
+      <span>◆</span> CSN Private Repository <span>◆</span> Version 1.0 <span>◆</span>
+    </p>
+  </footer>
+</div>
+
+<script>
+  // Card mouse tracking for glow effect
+  document.querySelectorAll('[data-card]').forEach(card => {
+    card.addEventListener('mousemove', (e) => {
+      const rect = card.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width) * 100;
+      const y = ((e.clientY - rect.top) / rect.height) * 100;
+      card.style.setProperty('--mouse-x', x + '%');
+      card.style.setProperty('--mouse-y', y + '%');
+    });
+  });
+</script>
+</body>
+</html>
